@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 
 app = Flask(__name__)
-app.secret_key = 'sua_chave_secreta_muito_forte_aqui_123456'  # Mude isso em produção!
+app.secret_key = 'sua_chave_secreta_muito_forte_aqui_123456_mude_em_producao!'  
 
 # ====================== CONFIGURAÇÃO DO BANCO ======================
 def init_db():
@@ -12,7 +12,6 @@ def init_db():
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
         
-        # Tabela de usuários
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,25 +30,26 @@ def init_db():
         
         conn.commit()
         conn.close()
-        print("Banco de dados criado com usuários padrão!")
+        print("✅ Banco de dados criado com usuários padrão!")
 
 # ====================== ROTAS ======================
 
 @app.route('/')
 def index():
     if 'user_id' in session:
-        if session['role'] == 'adm':
-            return "Bem-vindo, Administrador! <a href='/logout'>Sair</a>"
-        else:
-            return "Bem-vindo, Usuário! <a href='/logout'>Sair</a>"
+        return redirect(url_for('dashboard'))
     return render_template('index.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if not username or not password:
+            flash('Preencha todos os campos!', 'error')
+            return render_template('index.html')
         
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
@@ -64,21 +64,28 @@ def login():
             session['role'] = user[3]
             
             flash(f'Login realizado com sucesso! Bem-vindo, {user[1]}', 'success')
-            
-            if user[3] == 'adm':
-                return redirect(url_for('index'))  # ou para dashboard admin
-            else:
-                return redirect(url_for('index'))  # ou para dashboard user
+            return redirect(url_for('dashboard'))
         else:
             flash('Usuário ou senha incorretos!', 'error')
+            return render_template('index.html')
     
     return render_template('index.html')
+
+
+@app.route('/dashboard')
+def dashboard():
+    if 'user_id' not in session:
+        flash('Faça login para acessar o sistema.', 'error')
+        return redirect(url_for('index'))
+    
+    role_name = 'Administrador' if session.get('role') == 'adm' else 'Vendedor'
+    return render_template('dashboard.html', username=session['username'], role=role_name)
 
 
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('Você saiu do sistema.', 'info')
+    flash('Você saiu do sistema com sucesso.', 'info')
     return redirect(url_for('index'))
 
 
