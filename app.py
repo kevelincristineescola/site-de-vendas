@@ -7,6 +7,7 @@ app = Flask(__name__)
 app.secret_key = 'sua_chave_secreta_muito_forte_aqui_123456_mude_em_producao!'  
 
 # ====================== CONFIGURAÇÃO DO BANCO ======================
+
 def init_db():
     if not os.path.exists('database.db'):
         conn = sqlite3.connect('database.db')
