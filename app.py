@@ -9,31 +9,145 @@ app.secret_key = 'sua_chave_secreta_muito_forte_aqui_123456_mude_em_producao!'
 # ====================== CONFIGURAÇÃO DO BANCO ======================
 
 def init_db():
-    if not os.path.exists('database.db'):
-        conn = sqlite3.connect('database.db')
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                role TEXT NOT NULL CHECK(role IN ('adm', 'user'))
-            )
-        ''')
-        
-        # Usuários padrão (senha: 123456)
-        cursor.execute("INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)",
-                       ('admin', generate_password_hash('123456'), 'adm'))
-        
-        cursor.execute("INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)",
-                       ('vendedor', generate_password_hash('123456'), 'user'))
-        
-        conn.commit()
-        conn.close()
-        print("✅ Banco de dados criado com usuários padrão!")
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
 
+    # Usuários
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE,
+            password TEXT,
+            role TEXT
+        )
+    ''')
+
+    # Clientes
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS clientes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT,
+            email TEXT,
+            telefone TEXT
+        )
+    ''')
+
+    # Produtos
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS produtos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT,
+            preco REAL
+        )
+    ''')
+
+    # Vendas
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS vendas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cliente_id INTEGER,
+            produto_id INTEGER,
+            quantidade INTEGER,
+            total REAL,
+            data TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Usuários padrão
+    cursor.execute("INSERT OR IGNORE INTO users (id, username, password, role) VALUES (1, 'admin', ?, 'Adiministrador')",
+                   (generate_password_hash('123456'),))
+
+    cursor.execute("INSERT OR IGNORE INTO users (id, username, password, role) VALUES (2, 'vendedor', ?, 'Vendedor')",
+                   (generate_password_hash('123456'),))
+
+    # Produtos padrão
+    cursor.execute("INSERT OR IGNORE INTO produtos (id, nome, preco) VALUES (1, 'Camiseta', 49.90)")
+    cursor.execute("INSERT OR IGNORE INTO produtos (id, nome, preco) VALUES (2, 'Tênis', 199.90)")
+    cursor.execute("INSERT OR IGNORE INTO produtos (id, nome, preco) VALUES (3, 'Boné', 29.90)")
+
+    conn.commit()
+    conn.close()
 # ====================== ROTAS ======================
+@app.route('/produtos')
+def produtos():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM produtos")
+    produtos = cursor.fetchall()
+
+    conn.close()
+    return render_template('produtos.html', produtos=produtos)
+
+@app.route('/clientes', methods=['GET', 'POST'])
+def clientes():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    if request.method == 'POST':
+        nome = request.form['nome']
+        email = request.form['email']
+        telefone = request.form['telefone']
+
+        cursor.execute("INSERT INTO clientes (nome, email, telefone) VALUES (?, ?, ?)",
+                       (nome, email, telefone))
+        conn.commit()
+
+    cursor.execute("SELECT * FROM clientes")
+    clientes = cursor.fetchall()
+
+    conn.close()
+    return render_template('clientes.html', clientes=clientes)
+
+@app.route('/vendas', methods=['GET', 'POST'])
+def vendas():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    if request.method == 'POST':
+        cliente_id = request.form['cliente']
+        produto_id = request.form['produto']
+        quantidade = int(request.form['quantidade'])
+
+        cursor.execute("SELECT preco FROM produtos WHERE id=?", (produto_id,))
+        preco = cursor.fetchone()[0]
+
+        total = preco * quantidade
+
+        cursor.execute('''
+            INSERT INTO vendas (cliente_id, produto_id, quantidade, total)
+            VALUES (?, ?, ?, ?)
+        ''', (cliente_id, produto_id, quantidade, total))
+
+        conn.commit()
+
+    cursor.execute("SELECT * FROM clientes")
+    clientes = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM produtos")
+    produtos = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM vendas")
+    vendas = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('vendas.html', clientes=clientes, produtos=produtos, vendas=vendas)
+
+@app.route('/relatorios')
+def relatorios():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT SUM(total) FROM vendas")
+    total = cursor.fetchone()[0] or 0
+
+    cursor.execute("SELECT COUNT(*) FROM vendas")
+    qtd = cursor.fetchone()[0]
+
+    conn.close()
+
+    return render_template('relatorios.html', total=total, qtd=qtd)
 
 @app.route('/')
 def index():
