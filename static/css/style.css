@@ -1,5 +1,4 @@
-/* ====================== ESTILO GERAL ====================== */
-/* No seu style.css, mude a regra do body para: */
+/* ====================== ESTILO LOGIN ====================== */
 body.login-page {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
@@ -8,19 +7,12 @@ body.login-page {
     justify-content: center;
 }
 
-/* E para o restante das páginas: */
-body {
-    background-color: #f8f9fa;
-    font-family: 'Segoe UI', sans-serif;
-}
-/* Container principal */
 .login-container {
     width: 100%;
     max-width: 420px;
     padding: 20px;
 }
 
-/* Card de login */
 .login-card {
     background: white;
     border-radius: 20px;
@@ -28,7 +20,6 @@ body {
     overflow: hidden;
 }
 
-/* Cabeçalho */
 .login-header {
     background: linear-gradient(135deg, #4e54c8, #8f94fb);
     color: white;
@@ -48,12 +39,10 @@ body {
     font-size: 1.05rem;
 }
 
-/* Corpo do formulário */
 .login-body {
     padding: 2.5rem 2.2rem;
 }
 
-/* Inputs */
 .form-label {
     font-weight: 600;
     color: #333;
@@ -81,7 +70,6 @@ body {
     outline: none;
 }
 
-/* Botão de login */
 .btn-login {
     height: 54px;
     background: linear-gradient(135deg, #667eea, #764ba2);
@@ -100,23 +88,97 @@ body {
     color: white;
 }
 
-/* Alertas */
 .alert {
     border-radius: 12px;
     font-size: 0.98rem;
 }
 
-/* Responsividade */
+/* Responsividade login */
 @media (max-width: 480px) {
     .login-card {
         border-radius: 16px;
     }
-    
+
     .login-header {
         padding: 2.2rem 1.5rem 1.5rem;
     }
-    
+
     .login-body {
         padding: 2rem 1.8rem;
     }
+}
+
+/* ====================== ESTILO GERAL ====================== */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 20px;
+    color: #333;
+}
+
+h1,
+h2 {
+    color: #2c3e50;
+}
+
+/* Botões gerais */
+button {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+/* Tabelas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: #fff;
+}
+
+table th,
+table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+
+table th {
+    background-color: #3498db;
+    color: white;
+}
+
+/* Links */
+a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Mensagens flash */
+.success {
+    color: green;
+    font-weight: bold;
+}
+
+.error {
+    color: red;
+    font-weight: bold;
+}
+
+.info {
+    color: blue;
+    font-weight: bold;
 }
